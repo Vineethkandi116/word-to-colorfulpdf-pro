@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word to PDF Enhancer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 30px;
+    }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type='color'], input[type='file'], input[type='text'] {
+      margin-top: 5px;
+      width: 100%;
+    }
+    .contrast-warning {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎨 Word to Colorful PDF Enhancer</h2>
+    <form action="/preview" method="post" enctype="multipart/form-data">
+      <label>Upload Word File (.docx)</label>
+      <input type="file" name="word_file" accept=".docx" required>
+
+      <label>Choose Text Color</label>
+      <input type="color" name="text_color" id="textColor" value="#000000">
+
+      <label>Choose Background Color</label>
+      <input type="color" name="bg_color" id="bgColor" value="#ffffff">
+
+      <div class="contrast-warning" id="contrastFeedback">Contrast looks good ✅</div>
+
+      <label>Watermark (optional)</label>
+      <input type="text" name="watermark" placeholder="e.g. Confidential">
+
+      <button type="submit">Preview PDF</button>
+    </form>
+  </div>
+
+  <script>
+    function getLuminance(hex) {
+      let r = parseInt(hex.substr(1,2),16)/255;
+      let g = parseInt(hex.substr(3,2),16)/255;
+      let b = parseInt(hex.substr(5,2),16)/255;
+      [r,g,b] = [r,g,b].map(c => (c <= 0.03928) ? c/12.92 : Math.pow((c+0.055)/1.055,2.4));
+      return 0.2126*r + 0.7152*g + 0.0722*b;
+    }
+
+    function updateContrast() {
+      const text = document.getElementById('textColor').value;
+      const bg = document.getElementById('bgColor').value;
+      const L1 = getLuminance(text);
+      const L2 = getLuminance(bg);
+      const contrast = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+      const feedback = document.getElementById('contrastFeedback');
+      if (contrast < 4.5) {
+        feedback.textContent = "⚠️ Low Contrast! Consider better color pairing.";
+        feedback.style.color = "red";
+      } else {
+        feedback.textContent = "✅ Contrast looks good!";
+        feedback.style.color = "green";
+      }
+    }
+
+    document.getElementById('textColor').addEventListener('input', updateContrast);
+    document.getElementById('bgColor').addEventListener('input', updateContrast);
+    window.onload = updateContrast;
+  </script>
+</body>
+</html>
